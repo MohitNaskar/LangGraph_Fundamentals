@@ -1,9 +1,9 @@
+import os
 from typing import Annotated, Sequence, TypedDict
 from dotenv import load_dotenv  
 from langchain_core.messages import BaseMessage # The foundational class for all message types in LangGraph
-from langchain_core.messages import ToolMessage # Passes data back to LLM after it calls a tool such as the content and the tool_call_id
 from langchain_core.messages import SystemMessage # Message for providing instructions to the LLM
-from langchain_openai import ChatOpenAI
+from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.tools import tool
 from langgraph.graph.message import add_messages
 from langgraph.graph import StateGraph, END
@@ -11,6 +11,31 @@ from langgraph.prebuilt import ToolNode
 
 
 load_dotenv()
+
+google_api_key = os.environ["GOOGLE_API_KEY"]
+
+free_model_names = [
+    # Current stable models
+    "gemini-3.8-flash",
+    "gemini-3.6-flash",
+    "gemini-3.5-flash",
+    "gemini-3.5-flash-lite",
+    "gemini-3.1-flash-lite",
+
+    # Preview and legacy free models
+    "gemini-3-flash-preview",
+    "gemini-2.5-flash",
+    "gemini-2.5-flash-lite",
+    "gemini-2.5-pro",
+]
+
+models = [
+    ChatGoogleGenerativeAI(
+        model=model_name,
+        google_api_key=google_api_key,
+    )
+    for model_name in free_model_names
+]
 
 class AgentState(TypedDict):
     messages: Annotated[Sequence[BaseMessage], add_messages]
@@ -34,7 +59,8 @@ def multiply(a: int, b: int):
 
 tools = [add, subtract, multiply]
 
-model = ChatOpenAI(model = "gpt-4o").bind_tools(tools)
+bound_models = [candidate.bind_tools(tools) for candidate in models]
+model = bound_models[0].with_fallbacks(bound_models[1:])
 
 
 def model_call(state:AgentState) -> AgentState:
