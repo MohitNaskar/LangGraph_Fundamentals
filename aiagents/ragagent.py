@@ -29,7 +29,7 @@ free_model_names = [
     "gemini-2.5-flash-lite",
     "gemini-2.5-pro",
 ]
-
+#import the models
 models = [
     ChatGoogleGenerativeAI(
         model=model_name,
@@ -37,8 +37,6 @@ models = [
     )
     for model_name in free_model_names
 ]
-
-pdf_path = "Stock_Market_Performance_2024.pdf"
 
 # Our Embedding Model - has to also be compatible with the LLM
 from langchain_google_genai import GoogleGenerativeAIEmbeddings
@@ -48,8 +46,8 @@ embeddings = GoogleGenerativeAIEmbeddings(
     google_api_key=google_api_key,
 )
 
-
-pdf_path = "Stock_Market_Performance_2024.pdf"
+# load the data on which we will perform retrieval
+pdf_path = "aiagents/Stock_Market_Performance_2024.pdf"
 
 
 # Safety measure I have put for debugging purposes :)
